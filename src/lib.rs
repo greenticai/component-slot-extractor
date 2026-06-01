@@ -154,6 +154,8 @@ pub struct ExtractedSlot {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SlotExtractionOutput {
     pub slots: Vec<ExtractedSlot>,
+    #[serde(default)]
+    pub values: std::collections::BTreeMap<String, serde_json::Value>,
     pub filled: Vec<String>,
     pub missing: Vec<String>,
     pub all_required_filled: bool,
@@ -267,6 +269,14 @@ fn output_schema() -> SchemaIr {
                 },
             ),
             (
+                "values".to_string(),
+                SchemaIr::Object {
+                    properties: BTreeMap::new(),
+                    required: Vec::new(),
+                    additional: AdditionalProperties::Allow,
+                },
+            ),
+            (
                 "filled".to_string(),
                 SchemaIr::Array {
                     items: Box::new(SchemaIr::String {
@@ -296,6 +306,7 @@ fn output_schema() -> SchemaIr {
         ]),
         required: vec![
             "slots".to_string(),
+            "values".to_string(),
             "filled".to_string(),
             "missing".to_string(),
             "all_required_filled".to_string(),
@@ -415,6 +426,7 @@ mod tests {
         assert_eq!(output.missing, vec!["city".to_string()]);
         assert!(output.filled.is_empty());
         assert!(output.slots.is_empty());
+        assert!(output.values.is_empty());
         assert!(!output.all_required_filled);
     }
 

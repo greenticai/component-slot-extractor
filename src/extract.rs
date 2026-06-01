@@ -87,10 +87,11 @@ pub(crate) fn extract(input: &SlotExtractionInput) -> SlotExtractionOutput {
             }
             None => match def.default_value.as_ref() {
                 Some(default) => {
+                    let coerced = coerce_default(def.slot_type, default);
                     filled.push(def.name.clone());
                     slots.push(ExtractedSlot {
                         name: def.name.clone(),
-                        value: Some(coerce_default(def.slot_type, default)),
+                        value: Some(coerced),
                         confidence: 0.5,
                         source: SOURCE_DEFAULT.to_string(),
                     });
@@ -104,9 +105,15 @@ pub(crate) fn extract(input: &SlotExtractionInput) -> SlotExtractionOutput {
         }
     }
 
+    let values: std::collections::BTreeMap<String, Value> = slots
+        .iter()
+        .filter_map(|s| s.value.as_ref().map(|v| (s.name.clone(), v.clone())))
+        .collect();
+
     let all_required_filled = missing.is_empty();
     SlotExtractionOutput {
         slots,
+        values,
         filled,
         missing,
         all_required_filled,
@@ -281,6 +288,7 @@ mod tests {
         assert_eq!(out.slots.len(), 1);
         assert_eq!(out.slots[0].value, Some(json!("Paris")));
         assert_eq!(out.slots[0].source, "regex");
+        assert_eq!(out.values["city"], json!("Paris"));
         assert!(out.all_required_filled);
     }
 
@@ -288,6 +296,7 @@ mod tests {
     fn string_without_pattern_is_missing() {
         let out = run("hello world", vec![def("city", SlotType::String)]);
         assert!(out.missing.contains(&"city".to_string()));
+        assert!(!out.values.contains_key("city"));
         assert!(!out.all_required_filled);
     }
 
@@ -369,6 +378,7 @@ mod tests {
         assert_eq!(out.slots[0].value, Some(json!(true)));
         assert_eq!(out.slots[0].source, "default");
         assert_eq!(out.slots[0].confidence, 0.5);
+        assert_eq!(out.values["confirm"], json!(true));
         assert!(out.all_required_filled);
     }
 
@@ -381,6 +391,7 @@ mod tests {
         assert!(out.filled.is_empty());
         assert!(out.missing.is_empty());
         assert!(out.slots.is_empty());
+        assert!(out.values.is_empty());
         assert!(out.all_required_filled);
     }
 
@@ -390,6 +401,32 @@ mod tests {
         d.pattern = Some("[unterminated".to_string());
         let out = run("anything", vec![d]);
         assert!(out.missing.contains(&"x".to_string()));
+    }
+
+    #[test]
+    fn values_map_contains_filled_slots_only() {
+        let mut counterparty = def("counterparty", SlotType::String);
+        counterparty.pattern = Some(r"from (\w+)".to_string());
+        let mut amount = def("amount", SlotType::Number);
+        amount.required = true;
+        amount.pattern = Some(r"(\d+) USD".to_string());
+        let out = run("Invoice from Acme for services", vec![counterparty, amount]);
+        assert_eq!(out.values["counterparty"], json!("Acme"));
+        assert!(
+            !out.values.contains_key("amount"),
+            "missing slot must be absent from values"
+        );
+        assert_eq!(out.values.len(), 1);
+    }
+
+    #[test]
+    fn values_map_includes_default_value_slots() {
+        let mut priority = def("priority", SlotType::String);
+        priority.pattern = Some(r"priority: (\w+)".to_string());
+        priority.default_value = Some("medium".to_string());
+        let out = run("no priority mentioned here", vec![priority]);
+        assert_eq!(out.values["priority"], json!("medium"));
+        assert_eq!(out.values.len(), 1);
     }
 
     #[test]
@@ -415,5 +452,10 @@ mod tests {
         assert_eq!(out.slots[0].value, Some(json!("Rome")));
         assert_eq!(out.slots[1].value, Some(json!(3.0)));
         assert_eq!(out.slots[2].value, Some(json!(true)));
+        // values map contains the same primitives keyed by name
+        assert_eq!(out.values["city"], json!("Rome"));
+        assert_eq!(out.values["days"], json!(3.0));
+        assert_eq!(out.values["confirm"], json!(true));
+        assert_eq!(out.values.len(), 3);
     }
 }

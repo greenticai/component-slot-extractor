@@ -22,6 +22,7 @@ fn number_pattern_with_capture_group_extracts_the_number() {
     assert_eq!(output.slots.len(), 1);
     assert_eq!(output.slots[0].value, Some(serde_json::json!(42.0)));
     assert_eq!(output.slots[0].source, "regex");
+    assert_eq!(output.values["order_id"], serde_json::json!(42.0));
 }
 
 #[test]
@@ -74,4 +75,11 @@ fn mixed_slots_end_to_end() {
     assert_eq!(by_name["when"], serde_json::json!("2026-07-04"));
     assert_eq!(by_name["party_size"], serde_json::json!(4.0));
     assert_eq!(by_name["confirm"], serde_json::json!(true));
+
+    // values map mirrors the same primitives keyed by slot name
+    assert_eq!(output.values["color"], serde_json::json!("Blue"));
+    assert_eq!(output.values["when"], serde_json::json!("2026-07-04"));
+    assert_eq!(output.values["party_size"], serde_json::json!(4.0));
+    assert_eq!(output.values["confirm"], serde_json::json!(true));
+    assert_eq!(output.values.len(), 4);
 }

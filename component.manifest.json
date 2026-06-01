@@ -34,7 +34,7 @@
   "default_operation": "extract_slots",
   "describe_export": "describe",
   "hashes": {
-    "component_wasm": "blake3:7f4f7afb7ebbb59aaea9786a5963fc5668432809bd3d2755a85733748a12f3ff"
+    "component_wasm": "blake3:9dbd8f4657dc86f7bdab3707dd3893caa87ee0fc7e339eeee68970c574a88395"
   },
   "id": "ai.greentic.component-slot-extractor",
   "limits": {
@@ -71,6 +71,11 @@
             "type": "array",
             "description": "Extracted slot results"
           },
+          "values": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Flat name-to-primitive map of filled slot values for adaptive-card prefill"
+          },
           "filled": {
             "type": "array",
             "items": { "type": "string" },
@@ -86,7 +91,7 @@
             "description": "Whether all required slots are filled"
           }
         },
-        "required": ["slots", "filled", "missing", "all_required_filled"],
+        "required": ["slots", "values", "filled", "missing", "all_required_filled"],
         "title": "component-slot-extractor extract_slots output",
         "type": "object"
       }
@@ -102,6 +107,6 @@
   "supports": [
     "messaging"
   ],
-  "version": "0.1.0",
+  "version": "0.1.1",
   "world": "greentic:component/component@0.6.0"
 }
