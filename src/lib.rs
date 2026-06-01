@@ -26,6 +26,7 @@ use bindings::exports::greentic::component::{
     component_runtime, component_schema,
 };
 
+mod extract;
 pub mod i18n;
 pub mod i18n_bundle;
 pub mod qa;
@@ -160,22 +161,11 @@ pub struct SlotExtractionOutput {
 
 // --- Public API ---
 
-/// No-op extraction stub (PR 1). Returns all required slots as missing.
-/// PR 2 will implement regex-based extraction for all 5 slot types.
+/// Regex-based extraction across all five `SlotType` variants. See
+/// `extract.rs` for per-type behaviour, default-value fallback, and the
+/// in-table affirmative/negative token set used for booleans.
 pub fn extract_slots(input: &SlotExtractionInput) -> SlotExtractionOutput {
-    let missing: Vec<String> = input
-        .slot_definitions
-        .iter()
-        .filter(|def| def.required)
-        .map(|def| def.name.clone())
-        .collect();
-
-    SlotExtractionOutput {
-        slots: Vec::new(),
-        filled: Vec::new(),
-        missing,
-        all_required_filled: false,
-    }
+    extract::extract(input)
 }
 
 pub fn describe_payload() -> String {
@@ -399,7 +389,7 @@ mod tests {
     }
 
     #[test]
-    fn extract_slots_returns_all_missing_for_required() {
+    fn unmatchable_required_slot_lands_in_missing() {
         let input = SlotExtractionInput {
             utterance: "hello world".into(),
             slot_definitions: vec![
