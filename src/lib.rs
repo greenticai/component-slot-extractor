@@ -8,8 +8,6 @@ use greentic_types::i18n_text::I18nText;
 #[cfg(target_arch = "wasm32")]
 use greentic_types::schemas::common::schema_ir::{AdditionalProperties, SchemaIr};
 #[cfg(target_arch = "wasm32")]
-use greentic_types::schemas::component::v0_6_0::ComponentQaSpec;
-#[cfg(target_arch = "wasm32")]
 use greentic_types::schemas::component::v0_6_0::{
     ComponentDescribe, ComponentInfo, ComponentOperation, ComponentRunInput, ComponentRunOutput,
     schema_hash,
@@ -304,7 +302,7 @@ fn output_schema() -> SchemaIr {
                     max_items: None,
                 },
             ),
-            ("all_required_filled".to_string(), SchemaIr::Boolean),
+            ("all_required_filled".to_string(), SchemaIr::Bool),
         ]),
         required: vec![
             "slots".to_string(),
@@ -312,7 +310,7 @@ fn output_schema() -> SchemaIr {
             "missing".to_string(),
             "all_required_filled".to_string(),
         ],
-        additional: AdditionalProperties::Deny,
+        additional: AdditionalProperties::Forbid,
     }
 }
 
@@ -321,7 +319,7 @@ fn config_schema() -> SchemaIr {
     SchemaIr::Object {
         properties: BTreeMap::new(),
         required: Vec::new(),
-        additional: AdditionalProperties::Deny,
+        additional: AdditionalProperties::Forbid,
     }
 }
 
