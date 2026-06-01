@@ -68,7 +68,6 @@ const NEGATIVES: &[&str] = &[
 pub(crate) fn extract(input: &SlotExtractionInput) -> SlotExtractionOutput {
     let utterance = input.utterance.as_str();
     let mut slots: Vec<ExtractedSlot> = Vec::new();
-    let mut values = std::collections::BTreeMap::<String, Value>::new();
     let mut filled: Vec<String> = Vec::new();
     let mut missing: Vec<String> = Vec::new();
 
@@ -84,16 +83,12 @@ pub(crate) fn extract(input: &SlotExtractionInput) -> SlotExtractionOutput {
         match matched {
             Some(slot) => {
                 filled.push(def.name.clone());
-                if let Some(v) = &slot.value {
-                    values.insert(def.name.clone(), v.clone());
-                }
                 slots.push(slot);
             }
             None => match def.default_value.as_ref() {
                 Some(default) => {
                     let coerced = coerce_default(def.slot_type, default);
                     filled.push(def.name.clone());
-                    values.insert(def.name.clone(), coerced.clone());
                     slots.push(ExtractedSlot {
                         name: def.name.clone(),
                         value: Some(coerced),
@@ -109,6 +104,11 @@ pub(crate) fn extract(input: &SlotExtractionInput) -> SlotExtractionOutput {
             },
         }
     }
+
+    let values: std::collections::BTreeMap<String, Value> = slots
+        .iter()
+        .filter_map(|s| s.value.as_ref().map(|v| (s.name.clone(), v.clone())))
+        .collect();
 
     let all_required_filled = missing.is_empty();
     SlotExtractionOutput {
