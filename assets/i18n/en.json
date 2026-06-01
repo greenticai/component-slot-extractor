@@ -1,0 +1,6 @@
+{
+  "component.name": "Slot Extractor",
+  "component.description": "Extract typed slot values from a user utterance using regex patterns",
+  "operation.extract_slots.label": "Extract slots",
+  "operation.extract_slots.description": "Run the configured slot definitions against the input utterance"
+}
