@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "component-slot-extractor extract_slots output",
+  "type": "object",
+  "properties": {
+    "slots": {
+      "type": "array",
+      "description": "Individual extraction results per slot",
+      "items": {
+        "$ref": "#/$defs/ExtractedSlot"
+      }
+    },
+    "filled": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Names of slots successfully filled"
+    },
+    "missing": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Names of required slots not filled"
+    },
+    "all_required_filled": {
+      "type": "boolean",
+      "description": "True when every required slot has a value"
+    }
+  },
+  "required": ["slots", "filled", "missing", "all_required_filled"],
+  "$defs": {
+    "ExtractedSlot": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Slot identifier matching the input definition"
+        },
+        "value": {
+          "description": "Extracted value (null if not found)"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Confidence score (1.0 for regex match, 0.5 for default, 0.0 for missing)"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["regex", "default", "missing"],
+          "description": "How the value was obtained"
+        }
+      },
+      "required": ["name", "confidence", "source"]
+    }
+  }
+}
