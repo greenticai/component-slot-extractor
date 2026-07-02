@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "component-slot-extractor extract_slots input",
+  "type": "object",
+  "properties": {
+    "utterance": {
+      "type": "string",
+      "description": "User utterance to extract slot values from"
+    },
+    "slot_definitions": {
+      "type": "array",
+      "description": "Slot definitions describing what to extract",
+      "items": {
+        "$ref": "#/$defs/SlotDefinition"
+      }
+    }
+  },
+  "required": ["utterance", "slot_definitions"],
+  "$defs": {
+    "SlotDefinition": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique slot identifier"
+        },
+        "slot_type": {
+          "type": "string",
+          "enum": ["string", "enum", "number", "date", "boolean"],
+          "description": "Type of the slot value"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Optional regex pattern for extraction (capture group 1 is the value)"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this slot must be filled for the output to be considered complete"
+        },
+        "enum_values": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Valid values when slot_type is enum"
+        },
+        "default_value": {
+          "type": "string",
+          "description": "Default value if extraction fails"
+        }
+      },
+      "required": ["name", "slot_type"]
+    }
+  }
+}
